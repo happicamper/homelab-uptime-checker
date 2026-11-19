@@ -1,0 +1,44 @@
+networks:
+  mynetwork:
+    name: appnet
+services:
+  db:
+    image: redis:latest
+    container_name: redis1
+    networks: [mynetwork]
+    #ports: ["6379:6379"]
+    volumes:
+      - ./data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    user: "999:999"
+    read_only: true
+    security_opt: 
+    - no-new-privileges=true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+  uptime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: uptime-checker:1.0-${GIT_SHA}
+    container_name: uptime1
+    networks: [mynetwork]
+    ports: ["5000:5000"]
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
