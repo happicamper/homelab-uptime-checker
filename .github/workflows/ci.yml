@@ -47,4 +47,10 @@ jobs:
           scanners: vuln,secret,misconfig
           format: sarif
           output: trivy.sarif
-      
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        name: Uplod Trivy results as artifacts
+          with:
+            name: trivy-fs-report
+            path: |
+              trivy.sarif
+            retention-days: 30
