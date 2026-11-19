@@ -32,37 +32,74 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   sca:
     name: Dependency scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
 
-      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        name: Trivy fs scan report (sarif)
+      - name: Trivy fs scan report (json)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret,misconfig
-          format: sarif
-          output: trivy-fs.sarif
+          format: json
+          output: trivy-fs.json
 
-      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        name: trivy fs scan report (human readable)
+      - name: Convert to human-readable format(table)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        if: always()
         with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln,secret,misconfig
+          scan-type: convert
+          scan-ref: trivy-fs.json
           format: table
           output: trivy-fs.txt
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        name: Uplod Trivy results as artifacts
+      - name: convert to sarif
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        if: always()
+        with:
+          scan-type: convert
+          scan-ref: trivy-fs.json
+          format: sarif
+          output: trivy-fs.sarif
+      
+      - name: Show summary report
+        if: always()
+        run: |
+          {
+            echo "Trivy summary report"
+            echo "---------------------------"
+            cat trivy-fs.sarif
+            echo "---------------------------"
+          } >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload sarif to security tab
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 #update-v4.39.3
+        with:
+          sarif_file: trivy-fs.sarif
+
+      - name: Upload Trivy results as artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: trivy-fs-report
           path: |
-            trivy.sarif
+            trivy-fs.json
             trivy-fs.txt
+            trivy-fs.sarif
           retention-days: 30
+      
+      - name: Trivy scan(Gate)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
