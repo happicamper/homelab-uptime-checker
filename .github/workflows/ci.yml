@@ -39,18 +39,30 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
+
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        name: Trivy fs scan report
+        name: Trivy fs scan report (sarif)
         with:
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret,misconfig
           format: sarif
-          output: trivy.sarif
+          output: trivy-fs.sarif
+
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        name: trivy fs scan report (human readable)
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          format: table
+          output: trivy-fs.txt
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         name: Uplod Trivy results as artifacts
         with:
           name: trivy-fs-report
           path: |
             trivy.sarif
+            trivy-fs.txt
           retention-days: 30
