@@ -21,7 +21,7 @@ env:
 jobs:
   secrets:
     name: secrets-scanning
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
