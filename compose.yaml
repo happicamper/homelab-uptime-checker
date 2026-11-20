@@ -34,6 +34,8 @@ services:
     environment:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
+      HOST_IP: ${HOST_IP}
+      HOST_PORT: ${HOST_PORT}
     depends_on:
       db:
         condition: service_healthy

@@ -23,7 +23,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
     REDIS_HOST=localhost \
-    REDIS_PROT=6379
+    REDIS_PORT=6379 \
+    HOST_IP=127.0.0.1\
+    HOST_PORT=5000
 
 # COPY app
 COPY ./app ./

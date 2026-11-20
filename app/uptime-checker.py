@@ -8,6 +8,8 @@ import os
 
 REDIS_HOST=os.environ["REDIS_HOST"]
 REDIS_PORT=int(os.environ["REDIS_PORT"])
+HOST_IP=os.environ["HOST_IP"]
+HOST_PORT=int(os.environ["HOST_PORT"])
 
 app = Flask(__name__)
 db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
@@ -77,4 +79,4 @@ if __name__ == '__main__':
     worker = threading.Thread(target=check_urls, daemon=True)
     worker.start()
 
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host=HOST_IP, port=HOST_PORT)
